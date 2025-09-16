@@ -702,7 +702,7 @@ private IMqConsumer mqConsumer;
 ```
 
 ### 兜底
-### 未确认消息查询
+#### 未确认消息查询
 属性mq.consumer.type，消费者组类型,1表示单一消费者组，2表示多个消费者组。
 ```aiignore
 值为1，一个消息只有单一消费者组
@@ -712,7 +712,7 @@ select * from mq_message where confirm_status=0
 值为2，一个消费者有一个或多个消费者组
 SELECT * FROM mq_producer_message where confirm_status=0
 ```
-### 重发
+#### 重发
 代码注入接口xyz.zhenliang.reliable.mq.core.IMqSender
 ```aiignore
 @Autowired
