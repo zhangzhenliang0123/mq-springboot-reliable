@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="mq-springboot-reliable-core" />
+        <module name="mq-springboot-reliable-rocketmq" />
+        <module name="mq-springboot-reliable-kafka" />
+        <module name="mq-springboot-reliable-rabbitmq" />
+        <module name="rabbitmq-demo" />
+        <module name="mq-springboot-reliable-mybatisplus" />
+        <module name="demo-core" />
+        <module name="rocketmq-demo" />
+        <module name="kafka-demo" />
+        <module name="mq-springboot-reliable-commons" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="mq-springboot-reliable-utils" target="17" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="demo-core" options="-parameters" />
+      <module name="kafka-demo" options="-parameters" />
+      <module name="rabbitmq-demo" options="-parameters" />
+      <module name="rocketmq-demo" options="-parameters" />
+    </option>
+  </component>
+</project>
