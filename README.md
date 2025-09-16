@@ -792,7 +792,7 @@ admin/Demo123
 ```
 
 #### rocketmq示例
-##### 中间件部署
+中间件部署
 修改deploy/rocketmq/broker/conf/broker.conf中brokerIP1为自己机器的IP
 ```aiignore
 brokerIP1=192.168.0.107
