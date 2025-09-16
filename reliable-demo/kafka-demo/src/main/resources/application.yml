@@ -1,0 +1,163 @@
+server:
+  port: 10000
+  shutdown: graceful  # 启用优雅停机
+
+spring:
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+    serialization:
+      write-dates-as-timestamps: false # 禁用时间戳
+    deserialization:
+      fail-on-unknown-properties:  false
+  lifecycle:
+    timeout-per-shutdown-phase: 30s  # 宽限期（默认30秒）
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/demo?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+    username: root
+    password: Demo123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      # 连接池配置
+      initial-size: 10
+      min-idle: 10
+      max-active: 100
+      max-wait: 60000
+
+      # 连接有效性检查
+      validation-query: SELECT 1
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+
+      # 连接回收策略
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      max-evictable-idle-time-millis: 600000
+
+      # 监控配置（适配Spring Boot 3.1.x）
+      stat-view-servlet:
+        enabled: true
+        url-pattern: /druid/*   # 保持与资源处理器一致
+        reset-enable: false            # 禁用重置功能
+#        login-username: admin  # 生产环境建议配置
+#        login-password: Hx1y3bb  # 生产环境建议配置
+
+      web-stat-filter:
+        enabled: true
+        url-pattern: /*
+        exclusions: "*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*,/webjars/*"
+      filter:
+        stat:
+          enabled: true
+          log-slow-sql: true
+          slow-sql-millis: 1000
+          merge-sql: false
+        wall:
+          enabled: true
+          config:
+            multi-statement-allow: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: Demo123 # 密码配置（若无密码则留空）
+      database: 0
+      timeout: 5000  # 连接超时时间(ms)
+      lettuce:
+        pool:
+          enabled: true
+          max-active: 50     # 连接池最大连接数
+          max-idle: 20       # 连接池最大空闲连接数
+          min-idle: 1        # 连接池最小空闲连接数
+          max-wait: 1000     # 获取连接最大等待时间(ms)
+        shutdown-timeout: 1000  # 关闭超时时间(ms)
+  kafka:
+    # Kafka地址
+    bootstrap-servers: localhost:9094
+    # 生产者配置
+    producer:
+      # 消息确认机制
+      acks: all # 或 -1，确保消息被完全确认
+      # 重试配置
+      retries: 2
+      # 批处理大小，单位为字节(32KB)，Kafka 会将多个消息打包成批次发送以提高吞吐量
+      batch-size: 32768
+      # 生产者缓冲区大小，单位为字节(32MB),当生产者发送速度超过 Kafka 处理速度时，消息会暂存在这个缓冲区中
+      buffer-memory: 33554432
+      # 消息序列化
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        # 生产者等待 Kafka broker 响应的最长时间
+        request.timeout.ms: 40000
+        # 消息投递超时时间，3分钟
+        delivery.timeout.ms: 180000
+        # 消息压缩算法，使用 zstd 算法压缩消息
+        compression.type: zstd
+        # 确保可以发送 4MB 消息
+        max.request.size: 5242880 # 5MB
+    consumer:
+      properties:
+        # 会话超时
+        session.timeout.ms: 30000
+        # 轮询超时
+        max.poll.interval.ms: 300000
+        # 获取大小
+        max.partition.fetch.bytes: 4194304 # 4MB
+
+# 新增 Actuator 管理端口配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  endpoint:
+    shutdown:
+      enabled: true
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+    default-enum-type-handler: org.apache.ibatis.type.EnumTypeHandler
+    jdbc-type-for-null: 'NULL'
+  mapper-locations: classpath:mapper/**/*Mapper.xml
+  type-aliases-package: xyz.zhenliang.**.entity
+
+mq:
+  # 消息ID前缀，比如使用服务名，消息ID为 前缀+32位UUID
+  id-prefix: demo-
+  consumer:
+    # 消费者组类型,1表示单一消费者组，2表示多个消费者组
+    type: 2
+    # 生产者和消费者是否同库，同库时是否需要消息确认
+    same-database-confirmation: false
+  # 幂等
+  idempotent:
+    # redis幂等锁前缀,幂等锁名称为 前缀:消费者组:消息ID
+    lock-prefix: "mq:idempotent:"
+    # 幂等锁过期时间（秒）
+    expire-time: 5
+
+knife4j:
+  #开启增强配置
+  enable: true
+  setting:
+    enable-dynamic-parameter: true
+  #开启生产环境屏蔽
+  production: false
+  basic:
+    enable: false
+#    username: admin
+#    password: Demo123
+
+logging:
+  file:
+    path: ./logs

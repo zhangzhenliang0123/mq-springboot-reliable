@@ -1,0 +1,111 @@
+#version: "3.8"
+
+x-shared-env: &shared-demo-env
+  TZ: "Asia/Shanghai"
+
+services:
+  # mysql 服务
+  demo-mysql:
+    image: mysql:8.0.43
+    container_name: demo-mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      <<: *shared-demo-env
+      MYSQL_ROOT_PASSWORD: Demo123
+      MYSQL_ROOT_HOST: '%'
+    volumes:
+      - ./mysql/config:/etc/mysql/conf.d
+      - ./mysql/data:/var/lib/mysql/
+      - ./mysql/logs:/var/log
+    networks:
+      - demo-default
+
+  demo-redis:
+    image: redis:7.2.4
+    container_name: demo-redis
+    restart: always
+    # network_mode: "host"
+    environment:
+      <<: *shared-demo-env
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/config/redis.conf:/etc/redis/redis.conf
+      - ./redis/data:/data
+      - ./redis/logs:/var/log/redis/
+    # command: ["redis-server", "/etc/redis/redis.conf", "--appendonly", "yes"]
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+    networks:
+      - demo-default
+
+  demo-zookeeper:
+    image: bitnami/zookeeper:3.8.4
+    container_name: demo-zookeeper
+    restart: always
+    ports:
+      - "2181:2181"
+    environment:
+      <<: *shared-demo-env
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+    volumes:
+      - ./zookeeper/data:/bitnami/zookeeper
+    networks:
+      - demo-default
+
+  demo-kafka:
+    image: bitnami/kafka:3.7.1
+    container_name: demo-kafka
+    restart: always
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+      - "9094:9094"
+    environment:
+      <<: *shared-demo-env
+      KAFKA_CFG_PROCESS_ROLES: "broker,controller"
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_CFG_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094"
+      KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://demo-kafka:9092,EXTERNAL://localhost:9094"
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT"
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "1@demo-kafka:9093"
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_CFG_LOG_FLUSH_INTERVAL_MS: "1000"
+      KAFKA_CFG_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+      KAFKA_CFG_NODE_ID: "1"
+      KAFKA_CFG_CONTROLLER_NODE_ID: "1"
+    volumes:
+      - ./kafka/data:/bitnami/kafka
+    depends_on:
+      - demo-zookeeper
+    networks:
+      - demo-default
+
+  demo-kafka-ui:
+    image: provectuslabs/kafka-ui:v0.7.2
+    container_name: demo-kafka-ui
+    restart: always
+    ports:
+      - "18082:8080"
+    environment:
+      <<: *shared-demo-env
+      KAFKA_CLUSTERS_0_NAME: "local"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "demo-kafka:9092"
+      KAFKA_CLUSTERS_0_ZOOKEEPER: "demo-zookeeper:2181"
+    depends_on:
+      - demo-kafka
+      - demo-zookeeper
+    networks:
+      - demo-default
+
+networks:
+  # 允许上网
+  demo-default:
+    name: demo-default
+    driver: bridge
+    internal: false  

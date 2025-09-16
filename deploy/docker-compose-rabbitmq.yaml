@@ -1,0 +1,65 @@
+#version: "3.8"
+
+x-shared-env: &shared-demo-env
+  TZ: "Asia/Shanghai"
+
+services:
+  # mysql 服务
+  demo-mysql:
+    image: mysql:8.0.43
+    container_name: demo-mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      <<: *shared-demo-env
+      MYSQL_ROOT_PASSWORD: Demo123
+      MYSQL_ROOT_HOST: '%'
+    volumes:
+      - ./mysql/config:/etc/mysql/conf.d
+      - ./mysql/data:/var/lib/mysql/
+      - ./mysql/logs:/var/log
+    networks:
+      - demo-default
+
+  demo-redis:
+    image: redis:7.2.4
+    container_name: demo-redis
+    restart: always
+    # network_mode: "host"
+    environment:
+      <<: *shared-demo-env
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/config/redis.conf:/etc/redis/redis.conf
+      - ./redis/data:/data
+      - ./redis/logs:/var/log/redis/
+    # command: ["redis-server", "/etc/redis/redis.conf", "--appendonly", "yes"]
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+    networks:
+      - demo-default
+
+  demo-rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: demo-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"   # AMQP 协议端口，应用程序连接使用
+      - "15672:15672" # Web 管理界面端口
+    environment:
+      <<: *shared-demo-env
+      RABBITMQ_DEFAULT_USER: "admin"
+      RABBITMQ_DEFAULT_PASS: "Demo123"
+    volumes:
+      - ./rabbitmq/conf/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./rabbitmq/data:/var/lib/rabbitmq
+    networks:
+      - demo-default
+
+networks:
+  # 允许上网
+  demo-default:
+    name: demo-default
+    driver: bridge
+    internal: false  

@@ -1,0 +1,104 @@
+#version: "3.8"
+
+x-shared-env: &shared-demo-env
+  TZ: "Asia/Shanghai"
+
+services:
+  # mysql 服务
+  demo-mysql:
+    image: mysql:8.0.43
+    container_name: demo-mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      <<: *shared-demo-env
+      MYSQL_ROOT_PASSWORD: Demo123
+      MYSQL_ROOT_HOST: '%'
+    volumes:
+      - ./mysql/config:/etc/mysql/conf.d
+      - ./mysql/data:/var/lib/mysql/
+      - ./mysql/logs:/var/log
+    networks:
+      - demo-default
+
+  demo-redis:
+    image: redis:7.2.4
+    container_name: demo-redis
+    restart: always
+    # network_mode: "host"
+    environment:
+      <<: *shared-demo-env
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/config/redis.conf:/etc/redis/redis.conf
+      - ./redis/data:/data
+      - ./redis/logs:/var/log/redis/
+    # command: ["redis-server", "/etc/redis/redis.conf", "--appendonly", "yes"]
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+    networks:
+      - demo-default
+
+  demo-rocketmq-namesrv:
+    image: apache/rocketmq:5.3.2
+    container_name: demo-rocketmq-namesrv
+    restart: always
+    ports:
+      - "9876:9876"
+    extra_hosts:
+      - "myhost:172.17.0.1"
+    volumes:
+      - ./rocketmq/namesrv/logs:/home/rocketmq/logs
+      - ./rocketmq/namesrv/store:/home/rocketmq/store
+    environment:
+      <<: *shared-demo-env
+      # JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512M -Xmx512M -Xmn128M"
+      JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms128M -Xmx512M -Xmn128M"
+    command: [ "sh","mqnamesrv" ]
+    networks:
+      - demo-default
+
+  demo-rocketmq-broker:
+    image: apache/rocketmq:5.3.2
+    container_name: demo-rocketmq-broker
+    restart: always
+    ports:
+      - "10909:10909"
+      - "10911:10911"
+    extra_hosts:
+      - "myhost:172.17.0.1"
+    volumes:
+      - ./rocketmq/broker/logs:/home/rocketmq/logs
+      - ./rocketmq/broker/store:/home/rocketmq/store
+      - ./rocketmq/broker/conf/broker.conf:/etc/rocketmq/broker.conf
+    environment:
+      <<: *shared-demo-env
+      # JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512M -Xmx512M -Xmn128M -XX:-AssumeMP"
+      JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms128M -Xmx512M -Xmn128M -XX:-AssumeMP"
+    command: [ "sh","mqbroker","-c","/etc/rocketmq/broker.conf","-n","demo-rocketmq-namesrv:9876","autoCreateTopicEnable=true" ]
+    depends_on:
+      - demo-rocketmq-namesrv
+    networks:
+      - demo-default
+
+  demo-rocketmq-dashboard:
+    image: apacherocketmq/rocketmq-dashboard:2.0.1
+    container_name: demo-rocketmq-dashboard
+    restart: always
+    ports:
+      - "18080:8080"
+    environment:
+      <<: *shared-demo-env
+      JAVA_OPTS: "-Drocketmq.namesrv.addr=demo-rocketmq-namesrv:9876 -Xmx512M -Dcom.rocketmq.sendMessageWithVIPChannel=false"
+    depends_on:
+      - demo-rocketmq-namesrv
+    networks:
+      - demo-default
+
+networks:
+  # 允许上网
+  demo-default:
+    name: demo-default
+    driver: bridge
+    internal: false  

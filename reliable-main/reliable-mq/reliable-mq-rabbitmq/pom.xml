@@ -1,0 +1,61 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>xyz.zhenliang.reliable</groupId>
+    <artifactId>mq-springboot-reliable-parent</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>mq-springboot-reliable-rabbitmq</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>mq-springboot-reliable-rabbitmq</name>
+  <url>https://gitee.com/zhangzhenliang/mq-springboot-reliable.git</url>
+  <!-- SCM信息 -->
+  <scm>
+    <connection>scm:git:https://gitee.com/zhangzhenliang/mq-springboot-reliable.git</connection>
+    <developerConnection>scm:git:ssh://git@gitee.com:zhangzhenliang/mq-springboot-reliable.git</developerConnection>
+    <url>https://gitee.com/zhangzhenliang/mq-springboot-reliable</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Zhenliang Zhang</name>
+      <email>58722247@qq.com</email>
+    </developer>
+  </developers>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>xyz.zhenliang.reliable</groupId>
+      <artifactId>mq-springboot-reliable-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-amqp</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+  </dependencies>
+</project>
